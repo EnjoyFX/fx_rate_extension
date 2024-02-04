@@ -8,12 +8,32 @@ port.onMessage.addListener(function(msg) {
     }
 });
 
+function prepareString(str) {
+    const hasCommaBetweenDigits = /(\d+),(\d+)/.test(str);
+    const hasDotBetweenDigits =   /(\d+)\.(\d+)/.test(str);
+
+    if (hasCommaBetweenDigits) {
+        if(hasDotBetweenDigits) {
+            str = str.replace(/,/g, "");
+        } else {
+            str = str.replace(/,/g, ".");
+        }
+    }
+
+    // removing all non-numeric, non-commas, non-dots
+    str = str.replace(/[^\d,.]/g, "");
+
+    // removing spaces
+    str = str.replace(/(\d+)\s+(\d+)/g, "$1$2");
+    return str;
+}
 
 function extractNumbersFromString(str) {
     try {
-        const matches = str.match(/[\d.]+/g);
+        str = prepareString(str);
+        let matches = str.match(/\d+(\.\d+)?/g);
         if (matches) {
-            return matches.map(Number);
+            return matches.map(parseFloat);
         } else {
             return null;
         }
@@ -44,7 +64,6 @@ document.addEventListener('mouseover', function(e) {
     if (number_candidate.length < 5){
         let lines = []
         for (let cur of number_candidate) {
-            cur = parseFloat(cur);
             if (!isNaN(cur)){
                 let multipliedValue = cur * currencyRate;
                 let line = `$${cur} x ${currencyRate} = ${multipliedValue.toFixed(2)} UAH`;
